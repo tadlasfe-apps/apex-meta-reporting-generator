@@ -1,5 +1,7 @@
 import { AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, PageBreak, Packer, Paragraph, ShadingType, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 
+export const runtime = "nodejs";
+
 type Campaign={name:string;objective:string;spend:number;results:number;cost:number;clicks:number;impressions:number;ctr:number;frequency:number;status:string};
 type Draft={summary:string;changes:string[];spotlightTitle:string;spotlight:string[];recommendations:{priority:string;title:string;body:string}[];plan:{action:string;priority:string;impact:string}[];internal:{title:string;items:string[]}[]};
 type Payload={account:{name:string;location:string;reportMonth:string;dateRange:string;logoDataUrl:string;campaigns:Campaign[];draft:Draft};metrics:{spend:number;impressions:number;clicks:number;leads:number;cpl:number;videoViews:number;cpc:number;linkRate:number;frequency:number};agencyLogo:string;view:string};
