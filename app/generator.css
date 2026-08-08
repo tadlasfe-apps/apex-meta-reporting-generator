@@ -1,0 +1,284 @@
+.generator-app {
+  min-height: 100vh;
+  background: #eef0ed;
+}
+.generator-top {
+  height: 74px;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.top-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-brand img {
+  width: 72px;
+  height: 32px;
+  object-fit: contain;
+}
+.top-brand div {
+  display: flex;
+  flex-direction: column;
+}
+.top-brand span {
+  font-size: 12px;
+  color: #aaa;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.top-actions form {
+  margin: 0;
+}
+.generator-layout {
+  display: grid;
+  grid-template-columns: 270px minmax(0, 1fr);
+}
+.account-panel {
+  background: #181918;
+  color: #eee;
+  min-height: calc(100vh - 74px);
+  padding: 18px;
+  position: sticky;
+  top: 74px;
+  height: calc(100vh - 74px);
+  overflow: auto;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  color: #aaa;
+}
+.panel-heading button {
+  border: 0;
+  border-radius: 5px;
+  background: #2f7628;
+  color: #fff;
+  padding: 6px 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.account-list {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0;
+}
+.account-list > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #242524;
+  color: #ddd;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 9px;
+  text-align: left;
+  cursor: pointer;
+}
+.account-list > button.selected {
+  border-color: #58bd3b;
+  background: #2e372c;
+}
+.account-list button > span {
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.account-list img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.account-list i {
+  color: #2f7628;
+  font-style: normal;
+  font-weight: 800;
+}
+.account-list b {
+  font-size: 12px;
+  line-height: 1.25;
+}
+.account-tools {
+  display: flex;
+  gap: 6px;
+}
+.account-tools button {
+  flex: 1;
+  background: #303130;
+  color: #ddd;
+  border: 1px solid #444;
+  border-radius: 5px;
+  padding: 7px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.account-tools .danger {
+  color: #ffaaaa;
+}
+.setup-card {
+  margin-top: 14px;
+  border-top: 1px solid #333;
+  padding-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+.setup-card label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #aaa;
+  display: grid;
+  gap: 4px;
+}
+.setup-card input {
+  width: 100%;
+  background: #252625;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 5px;
+  padding: 8px;
+  font: inherit;
+}
+.setup-card small {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #888;
+}
+.upload-label input {
+  display: none;
+}
+.upload-label span {
+  display: block;
+  text-align: center;
+  background: #303130;
+  border: 1px dashed #666;
+  border-radius: 5px;
+  padding: 9px;
+  color: #ddd;
+  cursor: pointer;
+}
+.upload-label.primary-upload span {
+  background: #2d5628;
+  border-color: #58bd3b;
+  color: #fff;
+  font-weight: 700;
+}
+.report-workspace {
+  min-width: 0;
+  padding: 26px;
+}
+.report-workspace .report-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+.logo-placeholder {
+  width: 210px;
+  height: 70px;
+  border: 1px dashed #bbb;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 0.1em;
+}
+.generator-app .report-header .client-logo {
+  max-width: 230px;
+  max-height: 76px;
+  width: auto;
+  height: auto;
+}
+.generator-app .hero h1 {
+  font-weight: 700;
+}
+.generator-app .edit-banner {
+  position: sticky;
+  top: 74px;
+  z-index: 25;
+  margin: 0 auto 10px;
+  max-width: 1180px;
+}
+.generator-app .download:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.generator-app .download {
+  background: #2f7628;
+  color: #fff;
+  border: 1px solid #67d44b;
+}
+.panel-heading button:hover,
+.generator-app .download:hover:not(:disabled) {
+  background: #255f20;
+}
+.panel-heading button:focus-visible,
+.generator-app .download:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+@media (max-width: 1000px) {
+  .generator-top {
+    height: auto;
+    min-height: 74px;
+    align-items: flex-start;
+    padding: 10px;
+    gap: 10px;
+  }
+  .top-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .generator-layout {
+    grid-template-columns: 1fr;
+  }
+  .account-panel {
+    position: relative;
+    top: 0;
+    height: auto;
+    min-height: auto;
+  }
+  .account-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .report-workspace {
+    padding: 12px;
+  }
+}
+@media (max-width: 680px) {
+  .top-brand span {
+    display: none;
+  }
+  .top-brand img {
+    width: 45px;
+  }
+  .top-actions .segmented {
+    order: 3;
+  }
+  .generator-app .report-header {
+    gap: 10px;
+  }
+  .generator-app .report-header .client-logo {
+    max-width: 140px;
+  }
+  .account-list {
+    grid-template-columns: 1fr;
+  }
+}
