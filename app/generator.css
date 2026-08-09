@@ -166,6 +166,31 @@
 .upload-label input {
   display: none;
 }
+.logo-url-field {
+  display: grid;
+  gap: 6px;
+}
+.logo-url-field button {
+  width: 100%;
+  border: 1px solid #58bd3b;
+  border-radius: 5px;
+  background: #244d20;
+  color: #fff;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.logo-url-field button:hover:not(:disabled) {
+  background: #2f7628;
+}
+.logo-url-field button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.logo-url-field .logo-error {
+  color: #ffaaaa;
+}
 .upload-label span {
   display: block;
   text-align: center;
