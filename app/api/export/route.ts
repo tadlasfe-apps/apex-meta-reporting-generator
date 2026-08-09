@@ -78,7 +78,7 @@ function tableCell(
   });
 }
 
-function fixedTable(widths: number[], rows: TableRow[], borders = undefined) {
+function fixedTable(widths: number[], rows: TableRow[], borders: typeof noBorders | undefined = undefined) {
   return new Table({
     width: { size: PAGE_WIDTH, type: WidthType.DXA },
     columnWidths: widths,
