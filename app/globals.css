@@ -459,8 +459,17 @@ footer img {
     size: letter;
     margin: 0.48in;
   }
-  .no-print {
+  .no-print,
+  .generator-top,
+  .account-panel,
+  .edit-banner {
     display: none !important;
+  }
+  .generator-layout {
+    display: block !important;
+  }
+  .report-workspace {
+    padding: 0 !important;
   }
   body {
     background: #fff;
