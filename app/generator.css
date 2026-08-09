@@ -166,6 +166,31 @@
 .upload-label input {
   display: none;
 }
+.logo-url-field {
+  display: grid;
+  gap: 6px;
+}
+.logo-url-field button {
+  width: 100%;
+  border: 1px solid #58bd3b;
+  border-radius: 5px;
+  background: #244d20;
+  color: #fff;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.logo-url-field button:hover:not(:disabled) {
+  background: #2f7628;
+}
+.logo-url-field button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.logo-url-field .logo-error {
+  color: #ffaaaa;
+}
 .upload-label span {
   display: block;
   text-align: center;
@@ -280,5 +305,47 @@
   }
   .account-list {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Flexible narrative editing controls */
+.editable-item {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.add-item,
+.remove-item {
+  border: 1px solid #62b84f;
+  border-radius: 7px;
+  background: #fff;
+  color: #26741f;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.add-item {
+  margin: 12px 0 24px;
+  padding: 10px 16px;
+}
+.remove-item {
+  justify-self: end;
+  padding: 6px 11px;
+  border-color: #d7a7a7;
+  color: #a33838;
+}
+.remove-item:disabled {
+  cursor: not-allowed;
+  opacity: .35;
+}
+.plan-row.is-editing {
+  grid-template-columns: minmax(0, 2fr) minmax(120px, .8fr) minmax(0, 1.3fr) auto;
+  align-items: start;
+}
+@media print {
+  .add-item,
+  .remove-item {
+    display: none !important;
   }
 }
