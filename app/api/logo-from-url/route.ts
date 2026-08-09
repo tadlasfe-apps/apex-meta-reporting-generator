@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/png", "image/jpeg"]);
+const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/svg+xml"]);
 
 function isBlockedHost(hostname: string) {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     parsePublicUrl(response.url);
 
     const contentType = (response.headers.get("content-type") || "").split(";")[0].toLowerCase();
-    if (!ALLOWED_TYPES.has(contentType)) throw new Error("The URL must point directly to a PNG or JPEG image.");
+    if (!ALLOWED_TYPES.has(contentType)) throw new Error("The URL must point directly to a PNG, JPEG, or SVG image.");
 
     const declaredSize = Number(response.headers.get("content-length") || 0);
     if (declaredSize > MAX_IMAGE_BYTES) throw new Error("The logo image must be 5 MB or smaller.");
