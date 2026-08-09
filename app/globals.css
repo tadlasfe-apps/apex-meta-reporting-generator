@@ -240,7 +240,7 @@ tfoot {
   font-weight: 700;
   background: #ededeb;
 }
-tfoot td {
+tfoot td:nth-child(n + 2) {
   text-align: right;
 }
 tfoot td:first-child {
