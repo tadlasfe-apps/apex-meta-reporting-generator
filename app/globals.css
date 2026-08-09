@@ -240,6 +240,12 @@ tfoot {
   font-weight: 700;
   background: #ededeb;
 }
+tfoot td {
+  text-align: right;
+}
+tfoot td:first-child {
+  text-align: left;
+}
 .note {
   font-size: 12px;
   line-height: 1.5;
