@@ -31,7 +31,9 @@ const DEEP_GREEN = "2F7628";
 const PALE = "EDF7E9";
 const GRAY = "727272";
 const INK = "171717";
-const PAGE_WIDTH = 9360;
+const PAGE_WIDTH = 10800;
+const PAGE_HEIGHT = 15840;
+const PAGE_MARGIN = 720;
 const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const noBorders = { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none };
 
@@ -137,12 +139,12 @@ export async function POST(request: Request) {
 
     const children: (Paragraph | Table)[] = [
       fixedTable(
-        [4680, 4680],
+        [5400, 5400],
         [
           new TableRow({
             children: [
               new TableCell({
-                width: { size: 4680, type: WidthType.DXA },
+                width: { size: 5400, type: WidthType.DXA },
                 borders: noBorders,
                 verticalAlign: VerticalAlign.CENTER,
                 children: [
@@ -154,7 +156,7 @@ export async function POST(request: Request) {
                 ],
               }),
               new TableCell({
-                width: { size: 4680, type: WidthType.DXA },
+                width: { size: 5400, type: WidthType.DXA },
                 borders: noBorders,
                 verticalAlign: VerticalAlign.CENTER,
                 children: [
@@ -203,17 +205,19 @@ export async function POST(request: Request) {
       ] : []),
       label("Campaign breakdown"),
       fixedTable(
-        [2860, 2100, 1450, 1350, 1600],
+        [2700, 1900, 1200, 1100, 1400, 1250, 1250],
         [
           new TableRow({
             tableHeader: true,
             cantSplit: true,
             children: [
-              tableCell([{ text: "CAMPAIGN", bold: true, size: 15 }], 2860, GREEN),
-              tableCell([{ text: "RESULT TYPE", bold: true, size: 15 }], 2100, GREEN),
-              tableCell([{ text: "SPEND", bold: true, size: 15 }], 1450, GREEN, AlignmentType.RIGHT),
-              tableCell([{ text: "RESULTS", bold: true, size: 15 }], 1350, GREEN, AlignmentType.RIGHT),
-              tableCell([{ text: "COST / RESULT", bold: true, size: 15 }], 1600, GREEN, AlignmentType.RIGHT),
+              tableCell([{ text: "CAMPAIGN", bold: true, size: 14 }], 2700, GREEN),
+              tableCell([{ text: "RESULT TYPE", bold: true, size: 14 }], 1900, GREEN),
+              tableCell([{ text: "SPEND", bold: true, size: 14 }], 1200, GREEN, AlignmentType.RIGHT),
+              tableCell([{ text: "RESULTS", bold: true, size: 14 }], 1100, GREEN, AlignmentType.RIGHT),
+              tableCell([{ text: "COST / RESULT", bold: true, size: 14 }], 1400, GREEN, AlignmentType.RIGHT),
+              tableCell([{ text: "LINK CLICKS", bold: true, size: 14 }], 1250, GREEN, AlignmentType.RIGHT),
+              tableCell([{ text: "CTR (ALL)", bold: true, size: 14 }], 1250, GREEN, AlignmentType.RIGHT),
             ],
           }),
           ...account.campaigns.map(
@@ -221,11 +225,13 @@ export async function POST(request: Request) {
               new TableRow({
                 cantSplit: true,
                 children: [
-                  tableCell([{ text: campaign.name, bold: true, size: 16 }, { text: campaign.status, size: 14, color: GRAY }], 2860),
-                  tableCell([{ text: campaign.objective, size: 16 }], 2100),
-                  tableCell([{ text: money(campaign.spend), size: 16 }], 1450, undefined, AlignmentType.RIGHT),
-                  tableCell([{ text: campaign.results ? num(campaign.results) : "-", size: 16 }], 1350, undefined, AlignmentType.RIGHT),
-                  tableCell([{ text: money(campaign.cost, campaign.cost < 1 ? 3 : 2), size: 16 }], 1600, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: campaign.name, bold: true, size: 15 }, { text: campaign.status, size: 13, color: GRAY }], 2700),
+                  tableCell([{ text: campaign.objective, size: 15 }], 1900),
+                  tableCell([{ text: money(campaign.spend), size: 15 }], 1200, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: campaign.results ? num(campaign.results) : "-", size: 15 }], 1100, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: money(campaign.cost, campaign.cost < 1 ? 3 : 2), size: 15 }], 1400, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: num(campaign.clicks), size: 15 }], 1250, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: campaign.ctr.toFixed(2) + "%", size: 15 }], 1250, undefined, AlignmentType.RIGHT),
                 ],
               }),
           ),
@@ -274,15 +280,15 @@ export async function POST(request: Request) {
       ]),
       label("Next period plan"),
       fixedTable(
-        [4300, 1400, 3660],
+        [4960, 1620, 4220],
         [
           new TableRow({
             tableHeader: true,
             cantSplit: true,
             children: [
-              tableCell([{ text: "ACTION ITEM", bold: true, size: 15 }], 4300, GREEN),
-              tableCell([{ text: "PRIORITY", bold: true, size: 15 }], 1400, GREEN),
-              tableCell([{ text: "EXPECTED IMPACT", bold: true, size: 15 }], 3660, GREEN),
+              tableCell([{ text: "ACTION ITEM", bold: true, size: 15 }], 4960, GREEN),
+              tableCell([{ text: "PRIORITY", bold: true, size: 15 }], 1620, GREEN),
+              tableCell([{ text: "EXPECTED IMPACT", bold: true, size: 15 }], 4220, GREEN),
             ],
           }),
           ...draft.plan.map(
@@ -290,9 +296,9 @@ export async function POST(request: Request) {
               new TableRow({
                 cantSplit: true,
                 children: [
-                  tableCell([{ text: item.action, bold: true, size: 16 }], 4300),
-                  tableCell([{ text: item.priority, size: 16 }], 1400),
-                  tableCell([{ text: item.impact, size: 16 }], 3660),
+                  tableCell([{ text: item.action, bold: true, size: 16 }], 4960),
+                  tableCell([{ text: item.priority, size: 16 }], 1620),
+                  tableCell([{ text: item.impact, size: 16 }], 4220),
                 ],
               }),
           ),
@@ -309,12 +315,12 @@ export async function POST(request: Request) {
     }
 
     const footer = fixedTable(
-      [1800, 7560],
+      [2100, 8700],
       [
         new TableRow({
           children: [
             new TableCell({
-              width: { size: 1800, type: WidthType.DXA },
+              width: { size: 2100, type: WidthType.DXA },
               borders: noBorders,
               verticalAlign: VerticalAlign.CENTER,
               children: [
@@ -326,7 +332,7 @@ export async function POST(request: Request) {
               ],
             }),
             new TableCell({
-              width: { size: 7560, type: WidthType.DXA },
+              width: { size: 8700, type: WidthType.DXA },
               borders: noBorders,
               verticalAlign: VerticalAlign.CENTER,
               children: [
@@ -366,7 +372,12 @@ export async function POST(request: Request) {
       },
       sections: [
         {
-          properties: { page: { margin: { top: 720, right: 1440, bottom: 720, left: 1440 } } },
+          properties: {
+            page: {
+              size: { width: 12240, height: PAGE_HEIGHT },
+              margin: { top: PAGE_MARGIN, right: PAGE_MARGIN, bottom: PAGE_MARGIN, left: PAGE_MARGIN, header: 360, footer: 360 },
+            },
+          },
           footers: { default: new Footer({ children: [footer] }) },
           children,
         },
