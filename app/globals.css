@@ -489,7 +489,7 @@ footer img {
   .campaign-summary {
     break-before: page;
     break-inside: avoid-page;
-    padding-top: 0.12in;
+    padding-top: 0.48in;
   }
   .campaign-summary .section-title {
     break-after: avoid-page;
@@ -529,7 +529,7 @@ footer img {
   }
   .internal {
     margin: 0;
-    padding: 0;
+    padding: 0.48in 0 0;
     background: #fff;
   }
   .recommendations article,
