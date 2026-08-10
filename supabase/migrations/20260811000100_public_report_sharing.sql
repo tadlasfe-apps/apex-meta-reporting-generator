@@ -58,3 +58,9 @@ $$;
 
 revoke all on function public.get_shared_report(uuid) from public;
 grant execute on function public.get_shared_report(uuid) to anon, authenticated;
+
+create index if not exists report_share_links_report_idx
+  on public.report_share_links(report_id);
+
+create index if not exists report_share_links_created_by_idx
+  on public.report_share_links(created_by);
