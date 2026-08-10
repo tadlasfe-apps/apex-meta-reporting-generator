@@ -1,0 +1,6 @@
+-- Cloud report persistence for APEX Meta Reporting Generator.
+-- Applied to Supabase project tbffredimyfvuxquxdov on 2026-08-11.
+-- The production schema includes profiles, workspaces, workspace_members,
+-- client_accounts, saved_reports, report_versions, and report_share_links.
+-- Row Level Security restricts account/report access by workspace role and assignment.
+-- See the Supabase migration history entry: create_reporting_workspace.

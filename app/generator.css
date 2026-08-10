@@ -406,3 +406,90 @@
     display: none !important;
   }
 }
+
+
+/* Supabase cloud workspace */
+.cloud-button {
+  border: 1px solid #5d9e50;
+  border-radius: 8px;
+  background: #182817;
+  color: #eaf7e7;
+  padding: 13px 18px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.cloud-panel {
+  position: sticky;
+  top: 100px;
+  z-index: 25;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 14px 24px;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #b9d7b3;
+  background: #eef8eb;
+  box-shadow: 0 8px 25px rgba(0,0,0,.12);
+}
+.cloud-panel > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+.cloud-panel span {
+  color: #50604e;
+  font-size: 13px;
+}
+.cloud-actions,
+.cloud-signin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.cloud-panel button {
+  border: 1px solid #2e8b2c;
+  border-radius: 7px;
+  background: #267e25;
+  color: #fff;
+  padding: 9px 13px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.cloud-panel button.secondary {
+  border-color: #7a7a7a;
+  background: #fff;
+  color: #333;
+}
+.cloud-panel button:disabled {
+  cursor: wait;
+  opacity: .55;
+}
+.cloud-signin input {
+  min-width: 250px;
+  border: 1px solid #9aac96;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font: inherit;
+}
+.cloud-message,
+.cloud-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 13px;
+}
+.cloud-message { color: #24631f; }
+.cloud-error { color: #a32929; }
+@media (max-width: 900px) {
+  .cloud-panel {
+    position: relative;
+    top: 0;
+    grid-template-columns: 1fr;
+  }
+}
+@media print {
+  .cloud-panel,
+  .cloud-button {
+    display: none !important;
+  }
+}
