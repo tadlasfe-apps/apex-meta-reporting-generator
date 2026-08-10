@@ -638,6 +638,12 @@
   height: 34px;
   object-fit: contain;
 }
+.share-toolbar img {
+  box-sizing: content-box;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #fff;
+}
 .share-toolbar span {
   color: #bbb;
   font-size: 13px;
