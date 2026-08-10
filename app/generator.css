@@ -649,6 +649,9 @@
   color: #dff3db;
   font-size: 12px;
 }
+.share-toolbar form {
+  margin: 0;
+}
 .share-toolbar button {
   border: 1px solid #67d44b;
   border-radius: 7px;
