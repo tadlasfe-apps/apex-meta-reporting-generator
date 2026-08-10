@@ -45,15 +45,32 @@ export default function SharedReportPage({params}:{params:Promise<{token:string}
   const [shared,setShared]=useState<SharedReport|null>(null);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
+  const [agencyLogo,setAgencyLogo]=useState("");
   useEffect(()=>{let active=true;(async()=>{if(!supabase){setError("Report sharing is not configured.");setLoading(false);return}const {data,error}=await supabase.rpc("get_shared_report",{share_token:token});if(!active)return;if(error||!data)setError("This share link is invalid, expired, or has been revoked.");else setShared(data as SharedReport);setLoading(false)})();return()=>{active=false}},[token]);
+  useEffect(()=>{let active=true;fetch("/apex-logo-cropped.png").then(response=>response.blob()).then(blob=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob)})).then(value=>{if(active)setAgencyLogo(value)}).catch(()=>{if(active)setAgencyLogo("")});return()=>{active=false}},[]);
   const campaigns=useMemo(()=>shared?.report.campaigns||[],[shared]);
   const summaries=useMemo(()=>summarize(campaigns),[campaigns]);
   const metrics=useMemo(()=>calculate(campaigns),[campaigns]);
   if(loading)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><p>Loading shared report…</p></main>;
   if(error||!shared)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><h1>Report unavailable</h1><p>{error}</p></main>;
   const {account,report,share}=shared,draft=report.draft,hidden=new Set(report.hiddenKpis||[]);
+  const exportPayload=JSON.stringify({
+    account:{
+      name:account.name,
+      location:account.location,
+      reportMonth:report.reportMonth,
+      dateRange:report.dateRange,
+      logoDataUrl:account.logoDataUrl||"",
+      hiddenKpis:report.hiddenKpis||[],
+      campaigns:report.campaigns||[],
+      draft:{...draft,internal:draft.internal||[]}
+    },
+    metrics,
+    agencyLogo,
+    view:share.viewMode==="AM"?"internal":"client"
+  });
   return <main className="shared-report-page">
-    <header className="share-toolbar no-print"><div><img src="/apex-logo-cropped.png" alt="APEX"/><span>Shared read-only report</span></div><div><b>{share.viewMode==="AM"?"AM view":"Client report"}</b><button type="button" onClick={()=>window.print()}>Download PDF</button></div></header>
+    <header className="share-toolbar no-print"><div><img src="/apex-logo-cropped.png" alt="APEX"/><span>Shared read-only report</span></div><div><b>{share.viewMode==="AM"?"AM view":"Client report"}</b><button type="button" onClick={()=>window.print()}>Download PDF</button><form method="POST" action="/api/export"><input type="hidden" name="payload" value={exportPayload}/><button type="submit">Download Word</button></form></div></header>
     <div className="report-shell">
       <header className="report-header">{account.logoDataUrl?<img className="client-logo" src={account.logoDataUrl} alt={account.name}/>:<div className="logo-placeholder">{account.name}</div>}<div><b>META ADS REPORT</b><span>{String(report.dateRange||"").toUpperCase()}</span></div></header>
       <section className="hero"><p className="eyebrow">Monthly performance report · {account.location}</p><h1>{account.name}</h1><div className="summary">{draft.summary}</div></section>
