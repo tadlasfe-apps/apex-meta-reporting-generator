@@ -351,6 +351,54 @@
 }
 
 
+/* Flexible AM notes */
+.internal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.internal-note-section {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 24px;
+}
+.internal-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+.internal-section-head .edit-field {
+  min-height: auto;
+}
+.internal-note-section ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.internal-note-section li + li {
+  margin-top: 12px;
+}
+.internal-add-note {
+  margin-top: 10px;
+}
+.internal-add-note .add-item {
+  margin: 0;
+}
+.internal-add-section {
+  margin-top: 18px;
+}
+@media (max-width: 800px) {
+  .internal-grid {
+    grid-template-columns: 1fr;
+  }
+  .internal-section-head {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 /* Per-account KPI visibility controls */
 .metrics.kpi-grid {
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
