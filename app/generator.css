@@ -163,6 +163,42 @@
   line-height: 1.4;
   color: #888;
 }
+.lead-reconciliation {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0;
+  padding: 11px;
+  border: 1px solid #4b6248;
+  border-radius: 7px;
+  background: #20251f;
+}
+.lead-reconciliation legend {
+  padding: 0 6px;
+  color: #b8d7b2;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.lead-reconciliation label {
+  color: #ddd;
+}
+.lead-reconciliation small {
+  color: #a9b7a6;
+}
+.lead-reconciliation button {
+  border: 1px solid #699b61;
+  border-radius: 5px;
+  background: transparent;
+  color: #cce8c7;
+  padding: 7px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.lead-reconciliation button:hover {
+  background: #2f472c;
+}
 .upload-label input {
   display: none;
 }
