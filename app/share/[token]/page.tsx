@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
-type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number };
+type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number; videoViews?:number };
 type Draft = { summary:string; changes:string[]; spotlightTitle:string; spotlight:string[]; recommendations:{priority:string;title:string;body:string}[]; plan:{action:string;priority:string;impact:string}[]; internal?:{title:string;items:string[]}[] };
 type SharedReport = {
   share:{viewMode:"CLIENT"|"AM";expiresAt:string|null};
@@ -22,7 +22,7 @@ function summarize(rows:Campaign[]){
     const key=row.name?.trim()||"Unnamed campaign",current=groups.get(key);
     if(!current){groups.set(key,{campaign:{...row,name:key,activeAds:row.activeAds??(row.status==="Active"?1:0)},ctrWeight:row.ctr*row.impressions,frequencyWeight:row.frequency*row.impressions});continue}
     const campaign=current.campaign;
-    campaign.spend+=row.spend;campaign.results+=row.results;campaign.clicks+=row.clicks;campaign.impressions+=row.impressions;
+    campaign.spend+=row.spend;campaign.results+=row.results;campaign.clicks+=row.clicks;campaign.impressions+=row.impressions;campaign.videoViews=(campaign.videoViews??(isVideo(campaign.objective)?campaign.results-row.results:0))+(row.videoViews??(isVideo(row.objective)?row.results:0));
     campaign.activeAds=(campaign.activeAds??0)+(row.activeAds??(row.status==="Active"?1:0));
     if(row.status==="Active")campaign.status="Active";
     current.ctrWeight+=row.ctr*row.impressions;current.frequencyWeight+=row.frequency*row.impressions;
@@ -33,7 +33,7 @@ function summarize(rows:Campaign[]){
 function calculate(campaigns:Campaign[]){
   const spend=campaigns.reduce((a,c)=>a+c.spend,0),impressions=campaigns.reduce((a,c)=>a+c.impressions,0),clicks=campaigns.reduce((a,c)=>a+c.clicks,0);
   const leadRows=campaigns.filter(c=>isLead(c.objective)),leads=leadRows.reduce((a,c)=>a+c.results,0),leadSpend=leadRows.filter(c=>c.results>0).reduce((a,c)=>a+c.spend,0);
-  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,videoViews:campaigns.filter(c=>isVideo(c.objective)).reduce((a,c)=>a+c.results,0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
+  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,videoViews:campaigns.reduce((total,c)=>total+(c.videoViews??(isVideo(c.objective)?c.results:0)),0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
 }
 
 function Metric({label,value,detail,primary=false}:{label:string;value:string;detail:string;primary?:boolean}){
