@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 type Campaign = { name: string; objective: string; spend: number; results: number; cost: number; clicks: number; impressions: number; ctr: number; frequency: number; status: string };
 type Draft = { summary: string; changes: string[]; spotlightTitle: string; spotlight: string[]; recommendations: { priority: string; title: string; body: string }[]; plan: { action: string; priority: string; impact: string }[]; internal: { title: string; items: string[] }[] };
 type KpiKey = "leads"|"cpl"|"spend"|"impressions"|"clicks"|"cpc"|"videoViews"|"frequency";
-type Payload = { account: { name: string; location: string; reportMonth: string; dateRange: string; logoDataUrl: string; hiddenKpis?: KpiKey[]; campaigns: Campaign[]; draft: Draft }; metrics: { spend: number; impressions: number; clicks: number; leads: number; cpl: number; videoViews: number; cpc: number; linkRate: number; frequency: number; metaLeads?: number; leadOverride?: number|null }; agencyLogo: string; view: string };
+type Payload = { account: { name: string; location: string; reportMonth: string; dateRange: string; logoDataUrl: string; hiddenKpis?: KpiKey[]; kpiRoles?:{primary:KpiKey[];secondary:KpiKey[]}; campaigns: Campaign[]; draft: Draft }; metrics: { spend: number; impressions: number; clicks: number; leads: number; cpl: number; videoViews: number; cpc: number; linkRate: number; frequency: number; metaLeads?: number; leadOverride?: number|null }; agencyLogo: string; view: string };
 
 const GREEN = "58BD3B";
 const DEEP_GREEN = "2F7628";
@@ -123,20 +123,19 @@ export async function POST(request: Request) {
     const metrics = payload.metrics;
     const clientLogo = imageData(account.logoDataUrl);
     const agencyLogo = imageData(payload.agencyLogo);
-    const hiddenKpis = new Set<KpiKey>(account.hiddenKpis ?? []);
-    const primaryKpis = [
+    const hiddenKpis = new Set<KpiKey>(account.hiddenKpis ?? []),roles=account.kpiRoles||{primary:["leads","cpl","spend"] as KpiKey[],secondary:["impressions","clicks","cpc","videoViews","frequency"] as KpiKey[]};
+    const allKpis = [
       { key: "leads" as KpiKey, lines: [{ text: "LEADS / CONTACTS", bold: true, size: 17 }, { text: num(metrics.leads), bold: true, size: 30 }, { text: metrics.leadOverride !== null && metrics.leadOverride !== undefined ? "GHL verified · Meta reported " + num(metrics.metaLeads ?? metrics.leads) : "Tracked by Meta", size: 16, color: GRAY }] },
       { key: "cpl" as KpiKey, lines: [{ text: "COST PER LEAD", bold: true, size: 17 }, { text: money(metrics.cpl), bold: true, size: 30 }, { text: metrics.leadOverride !== null && metrics.leadOverride !== undefined ? "Adjusted to GHL lead total" : "Lead-producing campaigns", size: 16, color: GRAY }] },
       { key: "spend" as KpiKey, lines: [{ text: "TOTAL SPEND", bold: true, size: 17 }, { text: money(metrics.spend), bold: true, size: 30 }, { text: account.campaigns.length + " campaign rows", size: 16, color: GRAY }] },
-    ].filter(item => !hiddenKpis.has(item.key));
-    const secondaryKpis = [
       { key: "impressions" as KpiKey, lines: [{ text: "IMPRESSIONS", bold: true, size: 15 }, { text: num(metrics.impressions), bold: true, size: 22 }] },
       { key: "clicks" as KpiKey, lines: [{ text: "LINK CLICKS", bold: true, size: 15 }, { text: num(metrics.clicks), bold: true, size: 22 }] },
       { key: "cpc" as KpiKey, lines: [{ text: "COST / LINK CLICK", bold: true, size: 15 }, { text: money(metrics.cpc), bold: true, size: 22 }] },
       { key: "videoViews" as KpiKey, lines: [{ text: "VIDEO RESULTS", bold: true, size: 15 }, { text: num(metrics.videoViews), bold: true, size: 22 }] },
       { key: "frequency" as KpiKey, lines: [{ text: "FREQUENCY", bold: true, size: 15 }, { text: metrics.frequency.toFixed(2), bold: true, size: 22 }] },
     ].filter(item => !hiddenKpis.has(item.key));
-
+    const primaryKpis = roles.primary.map(key=>allKpis.find(item=>item.key===key)).filter((item):item is (typeof allKpis)[number]=>Boolean(item));
+    const secondaryKpis = roles.secondary.map(key=>allKpis.find(item=>item.key===key)).filter((item):item is (typeof allKpis)[number]=>Boolean(item));
     const children: (Paragraph | Table)[] = [
       fixedTable(
         [5400, 5400],

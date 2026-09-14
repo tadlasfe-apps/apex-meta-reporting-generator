@@ -469,9 +469,10 @@
   letter-spacing: .08em;
   text-transform: uppercase;
 }
+.kpi-settings p { margin: 0 0 8px; color: #999; font-size: 11px; line-height: 1.4; }
 .kpi-settings label {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 94px;
   align-items: center;
   gap: 8px;
   margin: 7px 0;
@@ -480,11 +481,7 @@
   letter-spacing: 0;
   text-transform: none;
 }
-.kpi-settings input {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-}
+.kpi-settings select { width: 100%; padding: 6px; border: 1px solid #555; border-radius: 5px; background: #252625; color: #fff; }
 @media print {
   .hide-kpi {
     display: none !important;
