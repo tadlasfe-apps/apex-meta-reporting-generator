@@ -3,9 +3,10 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
-type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number; videoViews?:number };
+type UploadedMetric={label:string;value:number;format:"number"|"currency"|"percent";weight?:number};
+type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number; videoViews?:number; uploadedMetrics?:Record<string,UploadedMetric> };
 type Draft = { summary:string; changes:string[]; spotlightTitle:string; spotlight:string[]; recommendations:{priority:string;title:string;body:string}[]; plan:{action:string;priority:string;impact:string}[]; internal?:{title:string;items:string[]}[] };
-type KpiKey="leads"|"cpl"|"spend"|"impressions"|"clicks"|"cpc"|"videoViews"|"frequency";
+type KpiKey=string;
 type KpiRoles={primary:KpiKey[];secondary:KpiKey[]};
 type SharedReport = {
   share:{viewMode:"CLIENT"|"AM";expiresAt:string|null};
@@ -33,15 +34,16 @@ function summarize(rows:Campaign[]){
 }
 
 function calculate(campaigns:Campaign[]){
-  const spend=campaigns.reduce((a,c)=>a+c.spend,0),impressions=campaigns.reduce((a,c)=>a+c.impressions,0),clicks=campaigns.reduce((a,c)=>a+c.clicks,0);
+  const spend=campaigns.reduce((a,c)=>a+c.spend,0),impressions=campaigns.reduce((a,c)=>a+c.impressions,0),clicks=campaigns.reduce((a,c)=>a+c.clicks,0),uploadedMetrics:Record<string,UploadedMetric>={};
   const leadRows=campaigns.filter(c=>isLead(c.objective)),leads=leadRows.reduce((a,c)=>a+c.results,0),leadSpend=leadRows.filter(c=>c.results>0).reduce((a,c)=>a+c.spend,0);
-  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,videoViews:campaigns.reduce((total,c)=>total+(c.videoViews??(isVideo(c.objective)?c.results:0)),0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
+  campaigns.forEach(c=>Object.entries(c.uploadedMetrics||{}).forEach(([key,next])=>{const current=uploadedMetrics[key];if(!current){uploadedMetrics[key]={...next};return}if(next.format==="percent"){const currentWeight=current.weight||1,nextWeight=next.weight||1;uploadedMetrics[key]={...current,value:(current.value*currentWeight+next.value*nextWeight)/(currentWeight+nextWeight),weight:currentWeight+nextWeight}}else uploadedMetrics[key]={...current,value:current.value+next.value}}));
+  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,uploadedMetrics,videoViews:campaigns.reduce((total,c)=>total+(c.videoViews??(isVideo(c.objective)?c.results:0)),0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
 }
 
 function Metric({label,value,detail,primary=false}:{label:string;value:string;detail:string;primary?:boolean}){
   return <article className={primary?"metric primary":"metric"}><span>{label}</span><strong>{value}</strong><small>{detail}</small></article>;
 }
-function sharedCard(key:KpiKey,m:any,summaries:Campaign[]){const known=summaries.some(c=>c.status!=="Status not included"),active=summaries.reduce((total,c)=>total+(c.activeAds??0),0);return {leads:{label:"Leads / contacts",value:num(m.leads),detail:m.leadOverride!==null?`GHL verified · Meta: ${num(m.metaLeads)}`:"Tracked by Meta"},cpl:{label:"Cost per lead",value:money(m.cpl),detail:m.leadOverride!==null?"Adjusted to GHL lead total":"Lead-producing campaigns"},spend:{label:"Total spend",value:money(m.spend),detail:known?`${summaries.length} campaigns · ${active} ads running`:`${summaries.length} campaigns · status not included`},impressions:{label:"Impressions",value:num(m.impressions),detail:"Total delivery"},clicks:{label:"Link clicks",value:num(m.clicks),detail:`${m.linkRate.toFixed(2)}% link click rate`},cpc:{label:"Cost per link click",value:money(m.cpc),detail:"Blended"},videoViews:{label:"Video results",value:num(m.videoViews),detail:"ThruPlays / video views"},frequency:{label:"Avg. frequency",value:m.frequency.toFixed(2),detail:"Weighted"}}[key]}
+function sharedCard(key:KpiKey,m:any,summaries:Campaign[]){const known=summaries.some(c=>c.status!=="Status not included"),active=summaries.reduce((total,c)=>total+(c.activeAds??0),0),builtIn:Record<string,{label:string;value:string;detail:string}>={leads:{label:"Leads / contacts",value:num(m.leads),detail:m.leadOverride!==null?"GHL verified · Meta: "+num(m.metaLeads):"Tracked by Meta"},cpl:{label:"Cost per lead",value:money(m.cpl),detail:m.leadOverride!==null?"Adjusted to GHL lead total":"Lead-producing campaigns"},spend:{label:"Total spend",value:money(m.spend),detail:known?summaries.length+" campaigns · "+active+" ads running":summaries.length+" campaigns · status not included"},impressions:{label:"Impressions",value:num(m.impressions),detail:"Total delivery"},clicks:{label:"Link clicks",value:num(m.clicks),detail:m.linkRate.toFixed(2)+"% link click rate"},cpc:{label:"Cost per link click",value:money(m.cpc),detail:"Blended"},videoViews:{label:"Video results",value:num(m.videoViews),detail:"ThruPlays / video views"},frequency:{label:"Avg. frequency",value:m.frequency.toFixed(2),detail:"Weighted"}};if(builtIn[key])return builtIn[key];const metric=m.uploadedMetrics?.[key] as UploadedMetric|undefined;const value=metric?(metric.format==="currency"?money(metric.value):metric.format==="percent"?metric.value.toLocaleString("en-US",{maximumFractionDigits:2})+"%":metric.value.toLocaleString("en-US",{maximumFractionDigits:2})):"-";return {label:metric?.label||key.replace(/^custom:/,""),value,detail:metric?"From uploaded Meta export":"Not reported"}}
 
 export default function SharedReportPage({params}:{params:Promise<{token:string}>}){
   const {token}=use(params);
@@ -53,7 +55,7 @@ export default function SharedReportPage({params}:{params:Promise<{token:string}
   useEffect(()=>{let active=true;fetch("/apex-logo-cropped.png").then(response=>response.blob()).then(blob=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(blob)})).then(value=>{if(active)setAgencyLogo(value)}).catch(()=>{if(active)setAgencyLogo("")});return()=>{active=false}},[]);
   const campaigns=useMemo(()=>shared?.report.campaigns||[],[shared]);
   const summaries=useMemo(()=>summarize(campaigns),[campaigns]);
-  const metrics=useMemo(()=>{const calculated=calculate(campaigns),saved=shared?.report.metrics||{},hasOverride=saved.leadOverride!==null&&saved.leadOverride!==undefined;return hasOverride?{...calculated,leads:Number(saved.leads||0),cpl:Number(saved.cpl||0),metaLeads:Number(saved.metaLeads??calculated.leads),leadOverride:Number(saved.leadOverride)}:{...calculated,metaLeads:calculated.leads,leadOverride:null}},[campaigns,shared]);
+  const metrics=useMemo(()=>{const calculated=calculate(campaigns),saved=shared?.report.metrics||{},withUploaded={...calculated,uploadedMetrics:saved.uploadedMetrics||calculated.uploadedMetrics},hasOverride=saved.leadOverride!==null&&saved.leadOverride!==undefined;return hasOverride?{...withUploaded,leads:Number(saved.leads||0),cpl:Number(saved.cpl||0),metaLeads:Number(saved.metaLeads??calculated.leads),leadOverride:Number(saved.leadOverride)}:{...withUploaded,metaLeads:calculated.leads,leadOverride:null}},[campaigns,shared]);
   if(loading)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><p>Loading shared report…</p></main>;
   if(error||!shared)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><h1>Report unavailable</h1><p>{error}</p></main>;
   const {account,report,share}=shared,draft=report.draft,hidden=new Set(report.hiddenKpis||[]),roles:KpiRoles=report.metrics?.kpiRoles||{primary:(['leads','cpl','spend'] as KpiKey[]).filter(k=>!hidden.has(k)),secondary:(['impressions','clicks','cpc','videoViews','frequency'] as KpiKey[]).filter(k=>!hidden.has(k))};
