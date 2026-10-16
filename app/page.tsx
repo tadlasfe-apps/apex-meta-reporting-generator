@@ -38,7 +38,7 @@ const isLead=(s:string)=>/(lead|contact|form|call|appointment|conversion)/i.test
 const isVideo=(s:string)=>/(thruplay|video view)/i.test(s);
 
 function mergeUploadedMetric(target:Record<string,UploadedMetric>,key:string,next:UploadedMetric){const current=target[key];if(!current){target[key]={...next};return}if(next.format==="percent"){const currentWeight=current.weight||1,nextWeight=next.weight||1,totalWeight=currentWeight+nextWeight;target[key]={...current,value:(current.value*currentWeight+next.value*nextWeight)/totalWeight,weight:totalWeight};return}target[key]={...current,value:current.value+next.value,weight:(current.weight||0)+(next.weight||0)}}
-function uploadedMetricOptions(campaigns:Campaign[]){const found=new Map<string,string>();metricCampaigns.forEach(c=>Object.entries(c.uploadedMetrics||{}).forEach(([key,metric])=>found.set(key,metric.label)));return Array.from(found,([key,label])=>({key,label})).sort((a,b)=>a.label.localeCompare(b.label))}
+function uploadedMetricOptions(campaigns:Campaign[]){const found=new Map<string,string>();campaigns.forEach(c=>Object.entries(c.uploadedMetrics||{}).forEach(([key,metric])=>found.set(key,metric.label)));return Array.from(found,([key,label])=>({key,label})).sort((a,b)=>a.label.localeCompare(b.label))}
 function allKpiOptions(account:Account){return [...BASE_KPI_OPTIONS,...uploadedMetricOptions(account.campaigns)]}
 function calc(campaigns:Campaign[]){
   const metricCampaigns=campaignSummaries(campaigns),spend=metricCampaigns.reduce((a,c)=>a+c.spend,0),impressions=metricCampaigns.reduce((a,c)=>a+c.impressions,0),clicks=metricCampaigns.reduce((a,c)=>a+c.clicks,0);
