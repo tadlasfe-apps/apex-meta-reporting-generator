@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
 import { isSupabaseConfigured, supabase } from "../lib/supabase";
 
-type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number; videoViews?:number };
+type MetricFormat = "number"|"currency"|"percent";
+type UploadedMetric = { label:string; value:number; format:MetricFormat; weight?:number };
+type Campaign = { name:string; objective:string; spend:number; results:number; cost:number; clicks:number; impressions:number; ctr:number; frequency:number; status:string; activeAds?:number; videoViews?:number; uploadedMetrics?:Record<string,UploadedMetric> };
 type Draft = { summary:string; changes:string[]; spotlightTitle:string; spotlight:string[]; recommendations:{priority:string;title:string;body:string}[]; plan:{action:string;priority:string;impact:string}[]; internal:{title:string;items:string[]}[] };
-type KpiKey = "leads"|"cpl"|"spend"|"impressions"|"clicks"|"cpc"|"videoViews"|"frequency";
+type KpiKey = string;
 type KpiRoles = { primary:KpiKey[]; secondary:KpiKey[] };
 type Account = { id:string; name:string; location:string; reportMonth:string; dateRange:string; logoDataUrl:string; logoUrl?:string; hiddenKpis?:KpiKey[]; kpiRoles?:KpiRoles; leadOverride?:number|null; cloudAccountId?:string; cloudReportId?:string; campaigns:Campaign[]; draft:Draft };
-const KPI_OPTIONS:{key:KpiKey;label:string}[]=[{key:"leads",label:"Leads / contacts"},{key:"cpl",label:"Cost per lead"},{key:"spend",label:"Total spend"},{key:"impressions",label:"Impressions"},{key:"clicks",label:"Link clicks"},{key:"cpc",label:"Cost per link click"},{key:"videoViews",label:"Video results / ThruPlays"},{key:"frequency",label:"Average frequency"}];
+const BASE_KPI_OPTIONS:{key:KpiKey;label:string}[]=[{key:"leads",label:"Leads / contacts"},{key:"cpl",label:"Cost per lead"},{key:"spend",label:"Total spend"},{key:"impressions",label:"Impressions"},{key:"clicks",label:"Link clicks"},{key:"cpc",label:"Cost per link click"},{key:"videoViews",label:"Video results / ThruPlays"},{key:"frequency",label:"Average frequency"}];
 const DEFAULT_KPI_ROLES:KpiRoles={primary:["leads","cpl","spend"],secondary:["impressions","clicks","cpc","videoViews","frequency"]};
 type PendingImport = { campaigns:Campaign[]; reportMonth:string; dateRange:string };
 
@@ -35,11 +37,15 @@ const num=(v:number)=>v.toLocaleString("en-US",{maximumFractionDigits:0});
 const isLead=(s:string)=>/(lead|contact|form|call|appointment|conversion)/i.test(s)&&!/(thruplay|video|view|reach|click|impression)/i.test(s);
 const isVideo=(s:string)=>/(thruplay|video view)/i.test(s);
 
+function mergeUploadedMetric(target:Record<string,UploadedMetric>,key:string,next:UploadedMetric){const current=target[key];if(!current){target[key]={...next};return}if(next.format==="percent"){const currentWeight=current.weight||1,nextWeight=next.weight||1,totalWeight=currentWeight+nextWeight;target[key]={...current,value:(current.value*currentWeight+next.value*nextWeight)/totalWeight,weight:totalWeight};return}target[key]={...current,value:current.value+next.value,weight:(current.weight||0)+(next.weight||0)}}
+function uploadedMetricOptions(campaigns:Campaign[]){const found=new Map<string,string>();campaigns.forEach(c=>Object.entries(c.uploadedMetrics||{}).forEach(([key,metric])=>found.set(key,metric.label)));return Array.from(found,([key,label])=>({key,label})).sort((a,b)=>a.label.localeCompare(b.label))}
+function allKpiOptions(account:Account){return [...BASE_KPI_OPTIONS,...uploadedMetricOptions(account.campaigns)]}
 function calc(campaigns:Campaign[]){
   const spend=campaigns.reduce((a,c)=>a+c.spend,0),impressions=campaigns.reduce((a,c)=>a+c.impressions,0),clicks=campaigns.reduce((a,c)=>a+c.clicks,0);
   const leadRows=campaigns.filter(c=>isLead(c.objective)),leads=leadRows.reduce((a,c)=>a+c.results,0),leadSpend=leadRows.filter(c=>c.results>0).reduce((a,c)=>a+c.spend,0);
-  const videoViews=campaigns.reduce((total,c)=>total+(c.videoViews??(isVideo(c.objective)?c.results:0)),0);
-  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,leadSpend,videoViews,campaignCount:new Set(campaigns.map(c=>c.name)).size,activeAds:campaigns.reduce((total,c)=>total+(c.activeAds??(c.status==="Active"?1:0)),0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
+  const videoViews=campaigns.reduce((total,c)=>total+(c.videoViews??(isVideo(c.objective)?c.results:0)),0),uploadedMetrics:Record<string,UploadedMetric>={};
+  campaigns.forEach(c=>Object.entries(c.uploadedMetrics||{}).forEach(([key,metric])=>mergeUploadedMetric(uploadedMetrics,key,metric)));
+  return {spend,impressions,clicks,leads,cpl:leads?leadSpend/leads:0,leadSpend,videoViews,uploadedMetrics,campaignCount:new Set(campaigns.map(c=>c.name)).size,activeAds:campaigns.reduce((total,c)=>total+(c.activeAds??(c.status==="Active"?1:0)),0),cpc:clicks?spend/clicks:0,linkRate:impressions?clicks/impressions*100:0,frequency:impressions?campaigns.reduce((a,c)=>a+c.frequency*c.impressions,0)/impressions:0};
 }
 function reconciledMetrics(item:Account){const meta=calc(item.campaigns),hasOverride=item.leadOverride!==null&&item.leadOverride!==undefined&&Number.isFinite(item.leadOverride);if(!hasOverride)return {...meta,metaLeads:meta.leads,leadOverride:null};const leads=Math.max(0,Number(item.leadOverride));return {...meta,metaLeads:meta.leads,leads,cpl:leads?meta.leadSpend/leads:0,leadOverride:leads};
 }
