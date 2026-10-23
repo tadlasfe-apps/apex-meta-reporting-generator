@@ -16,6 +16,7 @@ import {
   VerticalAlign,
   WidthType,
 } from "docx";
+import { campaignReportingOutcome } from "../../../lib/reporting-goal";
 
 export const runtime = "nodejs";
 
@@ -230,19 +231,21 @@ export async function POST(request: Request) {
             ],
           }),
           ...account.campaigns.map(
-            (campaign) =>
-              new TableRow({
+            (campaign) => {
+              const outcome = campaignReportingOutcome(campaign, roles);
+              return new TableRow({
                 cantSplit: true,
                 children: [
                   tableCell([{ text: campaign.name, bold: true, size: 15 }, { text: campaign.status, size: 13, color: GRAY }], 2700),
-                  tableCell([{ text: campaign.objective, size: 15 }], 1900),
+                  tableCell([{ text: outcome.label, size: 15 }], 1900),
                   tableCell([{ text: money(campaign.spend), size: 15 }], 1200, undefined, AlignmentType.RIGHT),
-                  tableCell([{ text: campaign.results ? num(campaign.results) : "-", size: 15 }], 1100, undefined, AlignmentType.RIGHT),
-                  tableCell([{ text: money(campaign.cost, campaign.cost < 1 ? 3 : 2), size: 15 }], 1400, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: outcome.results ? num(outcome.results) : "-", size: 15 }], 1100, undefined, AlignmentType.RIGHT),
+                  tableCell([{ text: money(outcome.cost), size: 15 }], 1400, undefined, AlignmentType.RIGHT),
                   tableCell([{ text: num(campaign.clicks), size: 15 }], 1250, undefined, AlignmentType.RIGHT),
                   tableCell([{ text: campaign.ctr.toFixed(2) + "%", size: 15 }], 1250, undefined, AlignmentType.RIGHT),
                 ],
-              }),
+              });
+            },
           ),
         ],
       ),
