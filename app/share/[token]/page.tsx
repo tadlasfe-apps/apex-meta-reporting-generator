@@ -19,6 +19,8 @@ const money=(value:number,digits=2)=>value?value.toLocaleString("en-US",{style:"
 const num=(value:number)=>Number(value||0).toLocaleString("en-US",{maximumFractionDigits:0});
 const isLead=(value:string)=>/(lead|contact|form|call|appointment|conversion)/i.test(value)&&!/(thruplay|video|view|reach|click|impression)/i.test(value);
 const isVideo=(value:string)=>/(thruplay|video view)/i.test(value);
+const IMPORTANT_SECONDARY_KPIS=new Set<KpiKey>(["impressions","clicks","cpc","videoViews","frequency"]);
+function reportKpiRoles(roles:KpiRoles,metrics:Record<string,any>):KpiRoles{return {primary:roles.primary,secondary:roles.secondary.filter(key=>IMPORTANT_SECONDARY_KPIS.has(key)&&Number(metrics[key]||0)>0)}}
 
 function mergeUploadedMetric(target:Record<string,UploadedMetric>,key:string,next:UploadedMetric){
   const current=target[key];
@@ -87,7 +89,7 @@ export default function SharedReportPage({params}:{params:Promise<{token:string}
   const metrics=useMemo(()=>{const calculated=calculate(summaries),saved=shared?.report.metrics||{},withUploaded={...calculated,uploadedMetrics:saved.uploadedMetrics||calculated.uploadedMetrics},hasOverride=saved.leadOverride!==null&&saved.leadOverride!==undefined,override=hasOverride?Math.max(0,Number(saved.leadOverride)):0;return hasOverride?{...withUploaded,leads:override,cpl:override?calculated.leadSpend/override:0,metaLeads:calculated.leads,leadOverride:override}:{...withUploaded,metaLeads:calculated.leads,leadOverride:null}},[summaries,shared]);
   if(loading)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><p>Loading shared report…</p></main>;
   if(error||!shared)return <main className="shared-report-status"><img src="/apex-logo-cropped.png" alt="APEX"/><h1>Report unavailable</h1><p>{error}</p></main>;
-  const {account,report,share}=shared,draft=report.draft,hidden=new Set(report.hiddenKpis||[]),roles:KpiRoles=report.metrics?.kpiRoles||{primary:(['leads','cpl','spend'] as KpiKey[]).filter(k=>!hidden.has(k)),secondary:(['impressions','clicks','cpc','videoViews','frequency'] as KpiKey[]).filter(k=>!hidden.has(k))};
+  const {account,report,share}=shared,draft=report.draft,hidden=new Set(report.hiddenKpis||[]),configuredRoles:KpiRoles=report.metrics?.kpiRoles||{primary:(['leads','cpl','spend'] as KpiKey[]).filter(k=>!hidden.has(k)),secondary:(['impressions','clicks','cpc','videoViews','frequency'] as KpiKey[]).filter(k=>!hidden.has(k))},roles=reportKpiRoles(configuredRoles,metrics);
   const exportPayload=JSON.stringify({
     account:{
       name:account.name,
