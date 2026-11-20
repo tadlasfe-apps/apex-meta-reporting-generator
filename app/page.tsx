@@ -57,11 +57,19 @@ function campaignSummaries(rows:Campaign[]):Campaign[]{
   for(const row of rows){const key=row.name.trim()||"Unnamed campaign";groups.set(key,[...(groups.get(key)||[]),row])}
   return Array.from(groups,([name,groupRows])=>{
     const totalRow=groupRows.find(row=>row.isCampaignTotal),adRows=groupRows.filter(row=>row.isAdRow),metricRows=totalRow?[totalRow]:(adRows.length?adRows:groupRows);
-    const first=metricRows[0],campaign:Campaign={...first,name,uploadedMetrics:clone(first.uploadedMetrics||{})};
+    const first=metricRows[0],campaign:Campaign={...first,name,results:0,videoViews:0,uploadedMetrics:clone(first.uploadedMetrics||{})};
     let ctrWeight=first.ctr*first.impressions,frequencyWeight=first.frequency*first.impressions;
-    for(const row of metricRows.slice(1)){campaign.spend+=row.spend;campaign.results+=row.results;campaign.clicks+=row.clicks;campaign.impressions+=row.impressions;campaign.videoViews=(campaign.videoViews??(isVideo(campaign.objective)?campaign.results-row.results:0))+(row.videoViews??(isVideo(row.objective)?row.results:0));Object.entries(row.uploadedMetrics||{}).forEach(([metricKey,metric])=>mergeUploadedMetric(campaign.uploadedMetrics||(campaign.uploadedMetrics={}),metricKey,metric));if(row.status==="Active")campaign.status="Active";if(campaign.objective==="No tracked result"&&row.objective!=="No tracked result")campaign.objective=row.objective;ctrWeight+=row.ctr*row.impressions;frequencyWeight+=row.frequency*row.impressions}
+    for(const row of metricRows.slice(1)){campaign.spend+=row.spend;campaign.clicks+=row.clicks;campaign.impressions+=row.impressions;Object.entries(row.uploadedMetrics||{}).forEach(([metricKey,metric])=>mergeUploadedMetric(campaign.uploadedMetrics||(campaign.uploadedMetrics={}),metricKey,metric));if(row.status==="Active")campaign.status="Active";ctrWeight+=row.ctr*row.impressions;frequencyWeight+=row.frequency*row.impressions}
+    const leadRows=metricRows.filter(row=>row.results>0&&isLead(row.objective));
+    const nonVideoResultRows=metricRows.filter(row=>row.results>0&&!isVideo(row.objective));
+    const resultRows=leadRows.length?leadRows:(nonVideoResultRows.length?nonVideoResultRows:metricRows.filter(row=>row.results>0));
+    const selectedOutcome=resultRows[0]||first;
+    campaign.objective=selectedOutcome.objective;
+    campaign.results=resultRows.reduce((total,row)=>total+row.results,0);
+    campaign.videoViews=metricRows.reduce((total,row)=>total+(row.videoViews??(isVideo(row.objective)?row.results:0)),0);
     campaign.activeAds=adRows.length?adRows.filter(row=>row.status==="Active").length:undefined;
-    if(!totalRow){campaign.cost=campaign.results?campaign.spend/campaign.results:0;campaign.ctr=campaign.impressions?ctrWeight/campaign.impressions:0;campaign.frequency=campaign.impressions?frequencyWeight/campaign.impressions:0}
+    campaign.cost=campaign.results?campaign.spend/campaign.results:0;
+    if(!totalRow){campaign.ctr=campaign.impressions?ctrWeight/campaign.impressions:0;campaign.frequency=campaign.impressions?frequencyWeight/campaign.impressions:0}
     return campaign;
   })
 }
